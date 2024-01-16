@@ -7,6 +7,11 @@ from email.mime.text import MIMEText
 import time
 load_dotenv()
 
+class School():
+    def __init__(self, name, sentEmail):
+        self.name =name
+        self.sentEmail = sentEmail
+
 def check_school_closure(schoolName):
     url = 'https://www.wmur.com/weather/closings'
     response = requests.get(url)
@@ -37,15 +42,20 @@ def send_email(status_message, school):
 
 
 def main():
+    schools_str = str.split(os.getenv("school_names"),',')
+    schools = []
+    for school in schools_str: 
+        schools.append(School(school, False))
     while True:
-        schools = str.split(os.getenv("school_names"),',')
         for school in schools:
-            status_message = check_school_closure(school)
+            status_message = check_school_closure(school.name)
             if status_message and status_message != 'Status not found':
-                send_email(status_message, school)
-                print("Email sent with the following status: " + status_message)
+                if school.sentEmail == False:
+                    send_email(status_message, school.name)
+                    print("Email sent with the following status: \n" + status_message)
+                    school.sentEmail = True
             else:
-                print( school + ": status not found or school is not closed.")
+                print( school.name + ": status not found or school is not closed.")
 
         # Wait for 1 minute before checking again
         time.sleep(60)
